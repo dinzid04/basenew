@@ -8,9 +8,9 @@ process.on("uncaughtException", (err) => {
 console.error("Caught exception:", err);
 });
 
-import "./settings.js"
-import "./lib/function.js"
-import {
+require("./settings.js");
+require("./lib/function.js");
+const {
     makeWASocket,
     useMultiFileAuthState,
     fetchLatestWaWebVersion,
@@ -19,24 +19,22 @@ import {
     makeInMemoryStore,
     jidDecode,
     Browsers
-} from "@whiskeysockets/baileys"
+} = require("@whiskeysockets/baileys");
 	
-import fs from "fs";
-import chalk from "chalk";
-import { fileURLToPath, pathToFileURL } from "url";
-import pino from 'pino';
-import { Boom } from '@hapi/boom';
-import path from "path";
-import readline from "readline"
-import qrcode from "qrcode-terminal";
-import { fileTypeFromBuffer } from "file-type";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-import { casesBot, fitur } from "./WazOF.js"; 
-import { imageToWebp, videoToWebp, writeExifImg, writeExifVid } from './lib/webp.js';
-import ConfigBaileys from "./lib/config.js";
+const fs = require("fs");
+const chalk = require("chalk");
+const pino = require('pino');
+const { Boom } = require('@hapi/boom');
+const path = require("path");
+const readline = require("readline");
+const qrcode = require("qrcode-terminal");
+const { fromBuffer: fileTypeFromBuffer } = require("file-type");
+
+const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/webp.js');
+const ConfigBaileys = require("./lib/config.js");
 const DataBase = require('./library/database');
 const database = new DataBase();
+
 (async () => {
 const loadData = await database.read()
 if (loadData && Object.keys(loadData).length === 0) {
@@ -59,6 +57,7 @@ setInterval(async () => {
 if (global.db) await database.write(global.db)
 }, 3500)
 })()
+
 async function InputNumber(promptText) {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -192,6 +191,9 @@ sock.ev.on("messages.upsert", async (chatUpdate) => {
     const isWaz = global.owner.includes(
       m.sender.split("@")[0]
     )
+
+    // Require WazOF.js dynamically to pick up changes
+    const { casesBot, fitur } = require("./WazOF.js");
 
     if (!fitur.public && !isWaz && !m.key.fromMe) return
 
@@ -410,8 +412,10 @@ sock.downloadAndSaveMediaMessage = async (message, filename, attachExtension = t
 
 startBot();
 
-fs.watchFile(__filename, () => {
-    fs.unwatchFile(__filename);
-    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(__filename));
-    import(`${pathToFileURL(__filename).href}?update=${Date.now()}`);
+let file = require.resolve(__filename)
+fs.watchFile(file, () => {
+    fs.unwatchFile(file);
+    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(file));
+    delete require.cache[file]
+    require(file)
 });

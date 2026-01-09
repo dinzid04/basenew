@@ -8,32 +8,32 @@ process.on("uncaughtException", (err) => {
 console.error("Caught exception:", err);
 });
 
-import { 
+const {
     generateWAMessageFromContent, 
     proto, 
     prepareWAMessageMedia,
     downloadContentFromMessage
-} from "@whiskeysockets/baileys"
+} = require("@whiskeysockets/baileys");
 
-import axios from "axios";
-import FormData from "form-data";
-import fs from "fs";
-import path from "path";
-import * as fsSync from "fs";  
-import chalk from "chalk";
-import { fileURLToPath, pathToFileURL } from "url";
-import { exec, execSync, spawn } from "child_process";
-import util from "util"; 
-import { createCanvas, registerFont } from 'canvas';
-import { performance } from "perf_hooks";
-import os from "os";
-import { fileTypeFromBuffer } from "file-type";
-import yts from "yt-search"
-import ytdl from '@vreden/youtube_scraper';
+const axios = require("axios");
+const FormData = require("form-data");
+const fs = require("fs");
+const path = require("path");
+const fsSync = require("fs");
+const chalk = require("chalk");
+const { exec, execSync, spawn } = require("child_process");
+const util = require("util");
+const { createCanvas, registerFont } = require('canvas');
+const { performance } = require("perf_hooks");
+const os = require("os");
+const { fromBuffer: fileTypeFromBuffer } = require("file-type");
+const yts = require("yt-search");
+const ytdl = require('@vreden/youtube_scraper');
+const fetch = require("node-fetch");
 
 //=============================================//
 const datagc = JSON.parse(fsSync.readFileSync("./data/reseller.json"))
-export const fitur = JSON.parse(fsSync.readFileSync('./data/setbot.json')); 
+const fitur = JSON.parse(fsSync.readFileSync('./data/setbot.json'));
 const dataBot = path.join(process.cwd(), "data", "setbot.json");
 const owners = JSON.parse(fs.readFileSync("./data/owner.json"))
 const premium = JSON.parse(fs.readFileSync("./data/premium.json"))
@@ -124,7 +124,7 @@ let tebaksusunkata = []
 let tebaktekateki = []
 let vote = db.others.vote = []
 //=============================================//
-export async function casesBot(sock, m, chatUpdate) {
+async function casesBot(sock, m, chatUpdate) {
 const body = (
   m.mtype === "conversation" ? m.message.conversation :
   m.mtype === "imageMessage" ? m.message.imageMessage.caption :
@@ -767,7 +767,7 @@ case 'addcase': {
     if (!isWaz) return m.reply(mess.owner);
     if (!text) return m.reply(`Mana codenya?\n\nContoh penggunaan:\n${prefix + command} case 'tes': m.reply('halo'); break`);
 
-    const __filename = fileURLToPath(import.meta.url);
+    // const __filename = fileURLToPath(import.meta.url);
 
     try {
         const data = fs.readFileSync(__filename, 'utf-8');
@@ -1114,7 +1114,7 @@ break
 
 // ** case other menu **
 case 'totalfitur': case 'listcase': {
-    const __filename = fileURLToPath(import.meta.url);
+    // const __filename = fileURLToPath(import.meta.url);
     const scriptContent = fs.readFileSync(__filename, 'utf-8');
     const casePattern = /case\s+['"]([^'"]+)['"]/g;
     const matches = scriptContent.match(casePattern);
@@ -1178,7 +1178,7 @@ case 'tourl': case 'reurl': case 'urlmaker': {
     mediaPath = await sock.downloadAndSaveMediaMessage(q);
     if (!mediaPath) return m.reply("Gagal mengambil media.");
     const buffer = fs.readFileSync(mediaPath);
-    const { fileTypeFromBuffer } = await import("file-type");
+    // const { fileTypeFromBuffer } = await import("file-type");
     const type = await fileTypeFromBuffer(buffer);
     const ext = type?.ext || "bin";
     const form = new FormData();
@@ -2982,9 +2982,12 @@ await sock.sendMessage(global.owner+"@s.whatsapp.net", {text: err.toString()}, {
 }}
 
 //=============================================//
-const __filename = fileURLToPath(import.meta.url);
-fsSync.watchFile(__filename, () => { 
-    fsSync.unwatchFile(__filename); 
-    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(__filename));
-    import(`${pathToFileURL(__filename).href}?update=${Date.now()}`);
+module.exports = { casesBot, fitur };
+
+let file = require.resolve(__filename)
+fs.watchFile(file, () => {
+    fs.unwatchFile(file);
+    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(file));
+    delete require.cache[file]
+    require(file)
 });
