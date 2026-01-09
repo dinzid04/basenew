@@ -4,11 +4,8 @@
   
  NO HAPUS CREDITS!!!!!!! HARGAI PEMBUATNYA
 */
-import fs from "fs";
-import chalk from "chalk";
-import { fileURLToPath, pathToFileURL } from "url";
-
-const __filename = fileURLToPath(import.meta.url);
+const fs = require("fs");
+const chalk = require("chalk");
 
 //settings custom pairing kode 
 global.pairingKode = "WAZZOFFC" //max 8 huruf boleh huruf atau angka atau kombinasi keduanya 
@@ -58,8 +55,10 @@ global.mess = {
  prem: "*[ Akses Ditolak ]*\nFitur ini hanya untuk user premium"
 }
 
-fs.watchFile(__filename, () => {
-    fs.unwatchFile(__filename);
-    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(__filename));
-    import(`${pathToFileURL(__filename).href}?update=${Date.now()}`);
+let file = require.resolve(__filename)
+fs.watchFile(file, () => {
+    fs.unwatchFile(file);
+    console.log(chalk.white.bold("~> Update File :"), chalk.green.bold(file));
+    delete require.cache[file]
+    require(file)
 });
