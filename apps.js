@@ -269,7 +269,7 @@ try {
                     
                     // Panggil fungsi handler
                     move(Yurii, m, store);
-                    smsg(Yurii, m, store);
+                    await smsg(Yurii, m, store);
                     require('./message/msg.js')(m, Yurii, from, store);
                     
                 } catch (err) {
