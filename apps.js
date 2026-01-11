@@ -22,7 +22,7 @@ const NodeCache = SETTING['modul']['nodecache'];
 const readline = SETTING['modul']['readline'];
 const { move } = require(SETTING['file']['move']);
 const { smsg } = require(SETTING['file']['set']);
-let { default: makeWASocket, useMultiFileAuthState, jidDecode, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore, getContentType, proto, getAggregateVotesInPollMessage } = SETTING['modul']['baileys'];
+let { default: makeWASocket, useMultiFileAuthState, jidDecode, DisconnectReason, fetchLatestBaileysVersion, makeInMemoryStore, getContentType, proto, getAggregateVotesInPollMessage, jidNormalizedUser } = SETTING['modul']['baileys'];
 const { color, bgcolor, ConsoleLog, biocolor } = require(SETTING['file']['color']);
 const { imageToWebp, videoToWebp, writeExifImg, writeExifVid, writeExif, writeExifStc } = require(SETTING['file']['exif']);
 const store = makeInMemoryStore({ logger: pino().child({ level: 'silent', stream: 'store' }) });
@@ -98,6 +98,37 @@ try {
                 return decode.user && decode.server && decode.user + '@' + decode.server || jid;
             } else return jid;
         };
+
+        const findJidByLid = (lid, store) => {
+            for (const contact of Object.values(store.contacts)) {
+                if (contact.lid === lid) {
+                    return contact.id;
+                }
+            }
+            return null;
+        }
+
+        Yurii.ev.on('contacts.update', (update) => {
+            for (let contact of update) {
+                let trueJid;
+                if (contact.id.endsWith('@lid')) {
+                    trueJid = findJidByLid(contact.id, store) || contact.id;
+                } else {
+                    trueJid = jidNormalizedUser(contact.id);
+                }
+
+                if (store && store.contacts) {
+                     store.contacts[trueJid] = {
+                        ...(store.contacts[trueJid] || {}),
+                        id: trueJid,
+                        name: contact.notify || store.contacts[trueJid]?.name
+                    }
+                    if (contact.id.endsWith('@lid')) {
+                        store.contacts[trueJid].lid = contact.id;
+                    }
+                }
+            }
+        });
         
   Yurii.yStyle = (jid, teks, title, body, url, quoted) => { 
     Yurii.sendMessage(jid, { text: teks, 
